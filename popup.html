@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  width: 380px;
+  height: 560px;
+  display: flex;
+  flex-direction: column;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 13px;
+  color: #e5e7eb;
+  background: #111827;
+  overflow: hidden;
+}
+
+/* ── Fixed top area (does NOT scroll) ── */
+#fixedTop {
+  flex-shrink: 0;
+  padding: 10px 14px 0 14px;
+  background: #111827;
+  border-bottom: 1px solid #1f2937;
+}
+#fixedTop h2 { font-size: 15px; margin-bottom: 8px; color: #f9fafb; }
+
+/* Stats bar */
+.stats-bar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.stat-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #1f2937;
+  color: #9ca3af;
+  white-space: nowrap;
+}
+.stat-chip .stat-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+}
+.stat-dot-green { background: #22c55e; }
+.stat-dot-blue { background: #3b82f6; }
+.stat-dot-yellow { background: #eab308; }
+.stat-dot-red { background: #ef4444; }
+.stat-dot-gray { background: #6b7280; }
+
+/* Filter row */
+.filter-row {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.filter-btn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid #374151;
+  background: transparent;
+  color: #9ca3af;
+  font-size: 11px;
+  cursor: pointer;
+  font-weight: 500;
+}
+.filter-btn:hover { background: #1f2937; }
+.filter-btn.active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #fff;
+}
+
+/* Buttons */
+.btn-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.btn {
+  flex: 1;
+  padding: 9px;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #fff;
+}
+.btn-primary { background: #3b82f6; }
+.btn-primary:hover { background: #2563eb; }
+.btn-secondary { background: #4b5563; }
+.btn-secondary:hover { background: #374151; }
+.btn-danger { background: #dc2626; }
+.btn-danger:hover { background: #b91c1c; }
+.btn:disabled { opacity: 0.5; cursor: wait; }
+
+/* ── Scrollable content area ── */
+#scrollArea {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 14px 14px 14px;
+}
+
+.section {
+  border: 1px solid #1f2937;
+  border-radius: 8px;
+  background: #0d1117;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.section-header {
+  padding: 8px 12px;
+  background: #1f2937;
+  font-size: 11px;
+  color: #9ca3af;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.section-body {
+  padding: 4px 0;
+}
+
+/* Job rows */
+.job-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-bottom: 1px solid #1f2937;
+  font-size: 12px;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.job-row:hover { background: #1f2937; }
+.job-row:last-child { border-bottom: none; }
+.job-row.clicked-row { opacity: 0.6; }
+.dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.dot-green { background: #22c55e; }
+.dot-red { background: #ef4444; }
+.dot-gray { background: #6b7280; }
+.job-info { flex: 1; min-width: 0; }
+.job-title {
+  font-weight: 600; color: #e5e7eb;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.job-company {
+  color: #9ca3af; font-size: 11px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.job-reason {
+  color: #6b7280; font-size: 10px; margin-top: 2px;
+}
+.nav-arrow {
+  color: #4b5563; font-size: 14px; flex-shrink: 0;
+}
+.job-row:hover .nav-arrow { color: #9ca3af; }
+
+/* Verdict box (single job) */
+.verdict-box {
+  padding: 10px; border-radius: 6px; font-size: 13px;
+}
+.verdict-apply { background: rgba(34,197,94,0.12); color: #22c55e; }
+.verdict-skip { background: rgba(239,68,68,0.10); color: #ef4444; }
+.verdict-label { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+.verdict-reason { color: #d1d5db; font-size: 12px; }
+
+.empty { color: #6b7280; font-style: italic; font-size: 12px; padding: 8px 12px; }
+.progress { color: #9ca3af; font-size: 12px; padding: 6px 12px; }
+</style>
+</head>
+<body>
+
+  <!-- Fixed top section -->
+  <div id="fixedTop">
+    <h2>Job Classifier</h2>
+
+    <!-- Persisted single job result (above everything) -->
+    <div id="oneResultFixed" style="display:none"></div>
+
+    <!-- Stats bar (hidden until results exist) -->
+    <div class="stats-bar" id="statsBar" style="display:none">
+      <div class="stat-chip"><span class="stat-dot stat-dot-green"></span> <span id="statGreen">0</span> Apply</div>
+      <div class="stat-chip"><span class="stat-dot stat-dot-blue"></span> <span id="statClicked">0</span> Clicked</div>
+      <div class="stat-chip"><span class="stat-dot stat-dot-yellow"></span> <span id="statUnclicked">0</span> Pending</div>
+      <div class="stat-chip"><span class="stat-dot stat-dot-gray"></span> <span id="statViewed">0</span> Viewed</div>
+      <div class="stat-chip"><span class="stat-dot stat-dot-red"></span> <span id="statSkipped">0</span> AI Skip</div>
+    </div>
+
+    <!-- Filter row (hidden until results exist) -->
+    <div class="filter-row" id="filterRow" style="display:none">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="apply">Apply</button>
+      <button class="filter-btn" data-filter="viewed">Viewed</button>
+      <button class="filter-btn" data-filter="skip">AI Skip</button>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="btn-row">
+      <button class="btn btn-primary" id="scanAll">Scan All</button>
+      <button class="btn btn-secondary" id="forceScan" title="Ignore Viewed/Saved/Applied status">Force Scan</button>
+      <button class="btn btn-secondary" id="scanOne">Scan This</button>
+      <button class="btn btn-danger" id="clearBtn" style="flex:0.4;display:none" title="Clear results">X</button>
+    </div>
+
+    <!-- Progress indicator -->
+    <div id="progressBar" style="display:none">
+      <div class="progress" id="progressText"></div>
+    </div>
+  </div>
+
+  <!-- Scrollable content -->
+  <div id="scrollArea">
+    <div id="allResults">
+      <div class="section">
+        <div class="section-body">
+          <div class="empty">Click "Scan All" to evaluate sidebar jobs.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header" style="display:flex;justify-content:space-between;align-items:center">
+        Settings
+        <button id="editSettingsBtn" style="background:none;border:none;color:#3b82f6;font-size:11px;cursor:pointer;font-weight:600">Edit</button>
+      </div>
+      <!-- Read-only view (default) -->
+      <div class="section-body" id="settingsReadOnly" style="padding:6px 12px">
+        <div style="display:flex;gap:12px;font-size:11px;color:#9ca3af">
+          <span>Key: <span id="keyPreview" style="color:#e5e7eb">Not set</span></span>
+          <span>Model: <span id="modelPreview" style="color:#e5e7eb">--</span></span>
+        </div>
+      </div>
+      <!-- Editable view (hidden) -->
+      <div class="section-body" id="settingsEdit" style="padding:8px 12px;display:none">
+        <div style="margin-bottom:6px">
+          <label style="font-size:11px;color:#9ca3af;margin-bottom:3px;display:block">API Key</label>
+          <input type="password" id="apiKey" placeholder="sk-proj-..." style="width:100%;padding:6px 8px;border:1px solid #374151;border-radius:6px;background:#111827;color:#e5e7eb;font-size:12px">
+        </div>
+        <div style="margin-bottom:6px">
+          <label style="font-size:11px;color:#9ca3af;margin-bottom:3px;display:block">Model</label>
+          <select id="model" style="width:100%;padding:6px 8px;border:1px solid #374151;border-radius:6px;background:#111827;color:#e5e7eb;font-size:12px">
+            <option value="o4-mini">o4-mini (reasoning)</option>
+            <option value="o3">o3 (reasoning)</option>
+            <option value="gpt-4.1-mini">gpt-4.1-mini</option>
+          </select>
+        </div>
+        <button class="btn btn-secondary" id="saveSettings" style="margin-bottom:0;padding:7px;font-size:12px;flex:none;width:100%">Save</button>
+        <div id="saveStatus" style="color:#22c55e;font-size:11px;margin-top:4px"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Job Classifier Settings</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  max-width: 460px;
+  margin: 40px auto;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  color: #e5e7eb;
+  background: #111827;
+  padding: 24px;
+}
+h1 { font-size: 20px; margin-bottom: 20px; color: #f9fafb; }
+label { display: block; font-size: 12px; color: #9ca3af; margin-bottom: 4px; margin-top: 14px; }
+input, select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #374151;
+  border-radius: 8px;
+  background: #1f2937;
+  color: #e5e7eb;
+  font-size: 14px;
+}
+button {
+  margin-top: 18px;
+  padding: 10px 28px;
+  border: none;
+  border-radius: 8px;
+  background: #3b82f6;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+button:hover { background: #2563eb; }
+#status { margin-top: 10px; color: #22c55e; font-size: 13px; }
+</style>
+</head>
+<body>
+  <h1>Job Classifier Settings</h1>
+  <label>OpenAI API Key</label>
+  <input type="password" id="apiKey" placeholder="sk-proj-...">
+  <label>Model</label>
+  <select id="model">
+    <option value="gpt-4.1-mini">gpt-4.1-mini ($0.40 / $1.60)</option>
+    <option value="gpt-4.1-nano">gpt-4.1-nano ($0.10 / $0.40)</option>
+    <option value="gpt-4o-mini">gpt-4o-mini ($0.15 / $0.60)</option>
+  </select>
+  <button id="save">Save</button>
+  <div id="status"></div>
+  <script>
+    const k = document.getElementById("apiKey"), m = document.getElementById("model"), s = document.getElementById("status");
+    chrome.storage.sync.get(["apiKey","model"], d => { if(d.apiKey) k.value=d.apiKey; if(d.model) m.value=d.model; });
+    document.getElementById("save").addEventListener("click", () => {
+      chrome.storage.sync.set({apiKey:k.value.trim(),model:m.value}, () => { s.textContent="Saved!"; setTimeout(()=>s.textContent="",2000); });
+    });
+  </script>
+</body>
+</html>
