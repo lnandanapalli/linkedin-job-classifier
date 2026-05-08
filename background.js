@@ -1,6 +1,18 @@
-importScripts('profile.js', 'prompt-builder.js');
+let SYSTEM_PROMPT = "";
+let profileError = "";
 
-const SYSTEM_PROMPT = buildSystemPrompt(PROFILE);
+try {
+  importScripts('profile.js', 'prompt-builder.js');
+  SYSTEM_PROMPT = buildSystemPrompt(PROFILE);
+} catch (e) {
+  try {
+    importScripts('profile.example.js', 'prompt-builder.js');
+    SYSTEM_PROMPT = buildSystemPrompt(PROFILE);
+    profileError = "Using example profile. Copy profile.example.js to profile.js and add your details.";
+  } catch (e2) {
+    profileError = "Failed to load profile: " + e2.message;
+  }
+}
 
 // ── Scan state (lives in background, survives popup close) ──
 let scanState = {
@@ -71,7 +83,18 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       clickedGreen: scanState.clickedGreen,
       filter: savedFilter,
       scrollTop: savedScrollTop,
-      oneJobResult: oneJobResult
+      oneJobResult: oneJobResult,
+      profileError: profileError,
+      profileInfo: typeof PROFILE !== "undefined" ? {
+        name: PROFILE.name,
+        title: PROFILE.title,
+        education: PROFILE.education,
+        experience_years: PROFILE.experience_years,
+        work_authorization: PROFILE.work_authorization,
+        location: PROFILE.location,
+        skills: PROFILE.skills,
+        max_experience_years: PROFILE.max_experience_years
+      } : null
     });
     return true;
   }

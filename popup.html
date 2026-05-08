@@ -184,6 +184,9 @@ body {
   <div id="fixedTop">
     <h2>Job Classifier</h2>
 
+    <!-- Profile warning (hidden unless issue) -->
+    <div id="profileWarning" style="display:none;padding:6px 10px;margin-bottom:8px;border-radius:6px;background:rgba(234,179,8,0.15);color:#eab308;font-size:11px;line-height:1.4"></div>
+
     <!-- Persisted single job result (above everything) -->
     <div id="oneResultFixed" style="display:none"></div>
 
@@ -256,6 +259,16 @@ body {
         </div>
         <button class="btn btn-secondary" id="saveSettings" style="margin-bottom:0;padding:7px;font-size:12px;flex:none;width:100%">Save</button>
         <div id="saveStatus" style="color:#22c55e;font-size:11px;margin-top:4px"></div>
+      </div>
+    </div>
+
+    <div class="section" id="profileSection">
+      <div class="section-header" style="display:flex;justify-content:space-between;align-items:center">
+        Loaded Profile
+        <button id="toggleProfileBtn" style="background:none;border:none;color:#3b82f6;font-size:11px;cursor:pointer;font-weight:600">Show</button>
+      </div>
+      <div class="section-body" id="profileBody" style="padding:6px 12px;display:none">
+        <div id="profileContent" style="font-size:11px;color:#9ca3af;line-height:1.6"></div>
       </div>
     </div>
   </div>

@@ -277,6 +277,34 @@ function renderOneJob(item) {
   </div>`;
 }
 
+// ── Profile info (read-only, bottom of popup) ──
+const toggleProfileBtn = document.getElementById("toggleProfileBtn");
+const profileBody = document.getElementById("profileBody");
+const profileContent = document.getElementById("profileContent");
+
+toggleProfileBtn.addEventListener("click", () => {
+  const isVisible = profileBody.style.display !== "none";
+  profileBody.style.display = isVisible ? "none" : "block";
+  toggleProfileBtn.textContent = isVisible ? "Show" : "Hide";
+});
+
+function renderProfileInfo(info) {
+  if (!info) {
+    profileContent.innerHTML = '<span style="color:#6b7280;font-style:italic">No profile loaded.</span>';
+    return;
+  }
+  const skillsText = info.skills.length > 8
+    ? info.skills.slice(0, 8).join(", ") + " + " + (info.skills.length - 8) + " more"
+    : info.skills.join(", ");
+  profileContent.innerHTML =
+    `<div style="margin-bottom:4px"><span style="color:#e5e7eb;font-weight:600;font-size:12px">${esc(info.name)}</span> <span style="color:#6b7280">- ${esc(info.title)}</span></div>` +
+    `<div>${esc(info.education)} | ${esc(info.experience_years)} yrs exp</div>` +
+    `<div>Auth: ${esc(info.work_authorization)}</div>` +
+    `<div>Location: ${esc(info.location)}</div>` +
+    `<div>Max YoE filter: ${info.max_experience_years}+ yrs</div>` +
+    `<div style="margin-top:4px">Skills: ${esc(skillsText)}</div>`;
+}
+
 // ── Poll background for state updates ──
 let initialLoadDone = false;
 
@@ -287,6 +315,14 @@ function pollState() {
     // On first load, restore filter, scroll, and one-job result
     if (!initialLoadDone) {
       initialLoadDone = true;
+      // Show profile warning if needed
+      if (state.profileError) {
+        const w = document.getElementById("profileWarning");
+        w.textContent = state.profileError;
+        w.style.display = "block";
+      }
+      // Render profile info
+      renderProfileInfo(state.profileInfo);
       if (state.filter && state.filter !== currentFilter) {
         currentFilter = state.filter;
         document.querySelectorAll(".filter-btn").forEach(b => {
