@@ -31,7 +31,7 @@ Instead of manually reading through dozens of job descriptions, this extension c
 ### 1. Clone the repo
 
 ```bash
-git clone 
+git clone https://github.com/lnandanapalli/linkedin-job-classifier.git
 cd linkedin-job-classifier
 ```
 
@@ -75,7 +75,7 @@ You need an OpenAI API key. Get one at [platform.openai.com](https://platform.op
 1. Click the extension icon
 2. Click **Edit** in the Settings section
 3. Paste your OpenAI API key
-4. Select a model (o4-mini recommended for speed/cost balance)
+4. Select a model (gpt-4.1-mini recommended for speed/cost balance)
 5. Click **Save**
 
 ## Usage
@@ -111,9 +111,9 @@ linkedin-job-classifier/
 
 | Model | Speed | Cost | Best for |
 |---|---|---|---|
-| `o4-mini` | Fast | Low | Daily use, large batches |
+| `o4-mini` | Fast | Low | Reasoning, large batches |
 | `o3` | Slower | Higher | When you want more careful reasoning |
-| `gpt-4.1-mini` | Fast | Low | Non-reasoning alternative |
+| `gpt-4.1-mini` | Fast | Low | (Recommended) Non-reasoning, Efficient |
 
 ## How the classifier decides
 
