@@ -4,6 +4,8 @@ A Chrome extension that scans LinkedIn job listings and uses AI to classify them
 
 Instead of manually reading through dozens of job descriptions, this extension clicks through every job card in the LinkedIn sidebar, extracts the full JD, sends it to an AI model for evaluation, and gives you a filterable dashboard of results.
 
+![Demo](demo/demo.gif)
+
 ## How it works
 
 1. **Content script** (`content.js`) runs on LinkedIn's job search page. It finds all job cards in the sidebar, clicks each one to load the full job description, and extracts the text.
