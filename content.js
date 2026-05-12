@@ -160,11 +160,11 @@ function clickCardAndWait(clickTarget, previousJD) {
         }
       }
 
-      if (checks > 40) {
+      if (checks > 10) {
         clearInterval(interval);
         resolve(getJDText());
       }
-    }, 250);
+    }, 1000);
   });
 }
 
