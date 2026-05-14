@@ -95,27 +95,74 @@ function parseCard(el) {
   return { title, company, rawText };
 }
 
-function getJDText() {
-  const selectors = [
+// ── Job details panel discovery ──
+// LinkedIn migrated from BEM classes (jobs-search__job-details--container)
+// to hashed class names in 2026. These helpers use stable attribute and
+// structural selectors that survive CSS-class renames.
+
+function getJobDetailsPanel() {
+  // Strategy 1: find the lazy-column that CONTAINS job-detail components
+  // (most robust — identifies the panel by its content, not its own attributes)
+  try {
+    const columns = document.querySelectorAll('[data-testid="lazy-column"]');
+    for (const col of columns) {
+      if (col.querySelector('[componentkey^="JobDetails_"]') ||
+          col.querySelector('[data-sdui-component*="aboutTheJob"]') ||
+          col.querySelector('[componentkey^="JobMatchInitialApplyRef"]')) {
+        return col;
+      }
+    }
+  } catch (e) {}
+
+  // Strategy 2: legacy BEM selectors (pre-2026 LinkedIn)
+  const legacy = [
     '.jobs-search__job-details--container',
     '.jobs-details__main-content',
     '[class*="jobs-description"]',
     '[class*="job-details"]'
   ];
-  let best = "";
-  for (const sel of selectors) {
-    const els = document.querySelectorAll(sel);
-    for (const el of els) {
-      const t = (el.innerText || "").trim();
-      if (t.length > best.length) best = t;
-    }
+  for (const sel of legacy) {
+    try {
+      const el = document.querySelector(sel);
+      if (el && (el.innerText || "").trim().length > 200) return el;
+    } catch (e) {}
   }
-  if (best.length < 200) {
-    const main = document.querySelector('[role="main"]');
-    if (main) {
-      const t = (main.innerText || "").trim();
-      if (t.length > best.length) best = t;
-    }
+
+  return null;
+}
+
+function getJDText() {
+  // Try the full details panel first (matches original behavior — includes
+  // title, company, description, and metadata).  This is what clickCardAndWait
+  // uses for change-detection and what evaluateJob sends to the API.
+  const panel = getJobDetailsPanel();
+  if (panel) {
+    const t = (panel.innerText || "").trim();
+    if (t.length > 200) return t;
+  }
+
+  // Fallback: grab just the "About the job" section
+  const jdSelectors = [
+    '[componentkey^="JobDetails_AboutTheJob"]',
+    '[data-sdui-component*="aboutTheJob"]'
+  ];
+  let best = "";
+  for (const sel of jdSelectors) {
+    try {
+      const el = document.querySelector(sel);
+      if (el) {
+        const t = (el.innerText || "").trim();
+        if (t.length > best.length) best = t;
+      }
+    } catch (e) {}
+  }
+  if (best.length > 200) return best;
+
+  // Last resort: entire main area
+  const main = document.querySelector('[role="main"]');
+  if (main) {
+    const t = (main.innerText || "").trim();
+    if (t.length > best.length) best = t;
   }
   return best;
 }
@@ -214,6 +261,40 @@ async function getAllCardsWithFullJD(force) {
 
 function getActiveJob() {
   const jd = getJDText();
-  const lines = jd.split("\n").map(l => l.trim()).filter(Boolean);
-  return { title: lines[0] || "Unknown", company: lines[1] || "Unknown", text: jd };
+  let title = "Unknown";
+  let company = "Unknown";
+
+  // Strategy 1: extract from links in the details panel (most reliable —
+  // LinkedIn uses /jobs/view/ links for titles and /company/ links for companies)
+  const panel = getJobDetailsPanel();
+  if (panel) {
+    const titleLink = panel.querySelector('a[href*="/jobs/view/"]');
+    if (titleLink) {
+      const t = (titleLink.innerText || "").trim();
+      if (t.length > 1) title = t;
+    }
+    const companyLink = panel.querySelector('a[href*="/company/"]');
+    if (companyLink) {
+      const t = (companyLink.innerText || "").trim();
+      if (t.length > 1) company = t;
+    }
+  }
+
+  // Strategy 2: parse from the aria-label="Company, ..." element
+  if (company === "Unknown") {
+    const companyEl = document.querySelector('[aria-label^="Company,"]');
+    if (companyEl) {
+      const match = companyEl.getAttribute('aria-label').match(/^Company,\s*(.+?)\.?$/);
+      if (match) company = match[1].trim();
+    }
+  }
+
+  // Strategy 3: fall back to line parsing (legacy behavior)
+  if (title === "Unknown" || company === "Unknown") {
+    const lines = jd.split("\n").map(l => l.trim()).filter(Boolean);
+    if (title === "Unknown") title = lines[0] || "Unknown";
+    if (company === "Unknown") company = lines[1] || "Unknown";
+  }
+
+  return { title, company, text: jd };
 }
